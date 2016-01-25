@@ -1,10 +1,20 @@
+resources:
+- name: hw-source
+  type: git
+  source:
+    uri: https://github.com/kejadlen/hello_concourse
+    branch: master
 jobs:
 - name: hello-world
   plan:
-  - task: say-hello
+  - get: hw-source
+    trigger: true
+  - task: hello-test
     config:
       platform: linux
-      image: "docker:///ubuntu"
+      image: "docker:///ruby"
+      inputs:
+        - name: hw-source
       run:
-        path: echo
-        args: ["Hello, world!"]
+        path: "ruby"
+        args: ["hw-source/services/hello.rb"]
