@@ -1,0 +1,19 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    foreman (0.78.0)
+      thor (~> 0.19.1)
+    minitest (5.4.3)
+    rack (1.6.1)
+    thor (0.19.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  foreman
+  minitest
+  rack
+
+BUNDLED WITH
+   1.10.3
