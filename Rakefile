@@ -12,14 +12,17 @@ end
 namespace :concourse do
   desc "Update Concourse"
   task :update do
-    sh "./vagrant/fly set-pipeline -p hello_concourse -c concourse/concourse.yml"
+    sh "./vagrant/fly set-pipeline --pipeline=hello_concourse --config=concourse/concourse.yml --var=cf-username=#{ENV["CF_USERNAME"]} --var=cf-password=#{ENV["CF_PASSWORD"]}"
   end
 end
 
 namespace :cf do
   desc "Push everything to CF"
   task push: "services/hello/hello" do
-    sh "cf push -f services/hello.yml"
+    cd "services/hello" do
+      sh "cf push"
+      rm "hello"
+    end
   end
 
   file "services/hello/hello" => "services/hello/hello.go" do
