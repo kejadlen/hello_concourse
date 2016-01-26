@@ -12,6 +12,14 @@ resources:
     password: {{cf-password}}
     organization: seattle-beach
     space: hello_concourse
+- name: s3
+  type: s3
+  source:
+    bucket: hello-concourse
+    regexp: hello
+    access_key_id: {{s3-access-key-id}}
+    secret_access_key: {{s3-secret-access-key}}
+    region_name: us-west-2
 
 jobs:
 - name: app-test
@@ -27,7 +35,7 @@ jobs:
       run:
         path: "ruby"
         args: ["hello_concourse/services/app.rb"]
-- name: hello
+- name: hello-build
   plan:
   - get: hello_concourse
     trigger: true
@@ -45,8 +53,17 @@ jobs:
           - hello_concourse/services/hello/build/hello
           - hello_concourse/services/hello/hello.go
       outputs:
-        - name: hello-bin
+        - name: hello-out
           path: hello_concourse/services/hello/build
+  - put: s3
+    params:
+      file: hello-out/hello
+- name: hello-test
+  plan:
+  - get: hello_concourse
+    trigger: true
+    passed:
+      - hello-build
   - task: hello-test
     config:
       platform: linux
@@ -60,10 +77,20 @@ jobs:
           - -v
           - hello_concourse/services/hello/hello_test.go
           - hello_concourse/services/hello/hello.go
+- name: hello-deploy
+  plan:
+  - get: hello_concourse
+    trigger: true
+    passed:
+      - hello-test
+  - get: s3
+    trigger: true
+    passed:
+      - hello-build
   - put: cf
     params:
       manifest: hello_concourse/services/hello/manifest.yml
-      path: hello-bin
+      path: s3/hello
 - name: world-test
   plan:
   - get: hello_concourse
