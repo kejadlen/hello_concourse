@@ -1,3 +1,7 @@
+task :hello do
+  sh "GOOS=linux go build -o services/hello/hello services/hello/hello.go"
+end
+
 namespace :concourse do
   desc "Update Concourse"
   task :update do

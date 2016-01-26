@@ -1,0 +1,6 @@
+applications:
+- name: hello
+  host: hello_concourse-hello
+  buildpack: binary_buildpack
+  path: hello
+  command: ./hello

@@ -1,9 +1,11 @@
 package main
 
 import (
+  "fmt"
 	"io"
 	"log"
 	"net/http"
+  "os"
 )
 
 func HelloServer() *http.ServeMux {
@@ -16,7 +18,12 @@ func HelloServer() *http.ServeMux {
 
 func main() {
   hello := HelloServer()
-	err := http.ListenAndServe(":9293", hello)
+  port := os.Getenv("PORT")
+  if port == "" {
+    port = "9293"
+  }
+  addr := fmt.Sprintf(":%s", port)
+	err := http.ListenAndServe(addr, hello)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
