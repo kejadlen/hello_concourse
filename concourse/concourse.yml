@@ -4,6 +4,7 @@ resources:
   source:
     uri: https://github.com/kejadlen/hello_concourse
     branch: master
+
 jobs:
 - name: app-test
   plan:
@@ -18,6 +19,23 @@ jobs:
       run:
         path: "ruby"
         args: ["hello_concourse/services/app.rb"]
+- name: hello-build
+  plan:
+  - get: hello_concourse
+    trigger: true
+  - task: hello-build
+    config:
+      platform: linux
+      image: "docker:///golang"
+      inputs:
+        - name: hello_concourse
+      run:
+        path: "go"
+        args:
+          - build
+          - -o
+          - hello_concourse/services/hello/hello
+          - hello_concourse/services/hello/hello.go
 - name: hello-test
   plan:
   - get: hello_concourse
