@@ -25,12 +25,16 @@ jobs:
   - task: hello-test
     config:
       platform: linux
-      image: "docker:///ruby"
+      image: "docker:///golang"
       inputs:
         - name: hello_concourse
       run:
-        path: "ruby"
-        args: ["hello_concourse/services/hello.rb"]
+        path: "go"
+        args:
+          - test
+          - -v
+          - hello_concourse/services/hello/hello_test.go
+          - hello_concourse/services/hello/hello.go
 - name: world-test
   plan:
   - get: hello_concourse
