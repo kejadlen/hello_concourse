@@ -4,6 +4,14 @@ resources:
   source:
     uri: https://github.com/kejadlen/hello_concourse
     branch: master
+- name: cf
+  type: cf
+  source:
+    api: https://api.run.pivotal.io
+    username: {{cf-username}}
+    password: {{cf-password}}
+    organization: seattle-beach
+    space: hello_concourse
 
 jobs:
 - name: app-test
@@ -19,7 +27,7 @@ jobs:
       run:
         path: "ruby"
         args: ["hello_concourse/services/app.rb"]
-- name: hello-build
+- name: hello
   plan:
   - get: hello_concourse
     trigger: true
@@ -34,12 +42,11 @@ jobs:
         args:
           - build
           - -o
-          - hello_concourse/services/hello/hello
+          - hello_concourse/services/hello/build/hello
           - hello_concourse/services/hello/hello.go
-- name: hello-test
-  plan:
-  - get: hello_concourse
-    trigger: true
+      outputs:
+        - name: hello-bin
+          path: hello_concourse/services/hello/build
   - task: hello-test
     config:
       platform: linux
@@ -53,6 +60,10 @@ jobs:
           - -v
           - hello_concourse/services/hello/hello_test.go
           - hello_concourse/services/hello/hello.go
+  - put: cf
+    params:
+      manifest: hello_concourse/services/hello/manifest.yml
+      path: hello-bin
 - name: world-test
   plan:
   - get: hello_concourse
