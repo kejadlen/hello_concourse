@@ -12,7 +12,15 @@ end
 namespace :concourse do
   desc "Update Concourse"
   task :update do
-    sh "./vagrant/fly set-pipeline --pipeline=hello_concourse --config=concourse/concourse.yml --var=cf-username=#{ENV["CF_USERNAME"]} --var=cf-password=#{ENV["CF_PASSWORD"]}"
+    args = [[:pipeline, "hello_concourse"],
+            [:config, "concourse/concourse.yml"]]
+
+    vars = %w[ cf-username cf-password s3-access-key-id s3-secret-access-key ]
+    vars.each.with_object(args) do |var, args|
+      args << ["var", "#{var}=#{ENV[var.gsub(?-, ?_).upcase]}"]
+    end
+
+    sh "./vagrant/fly set-pipeline #{args.map {|k,v| "--#{k}=#{v}" }.join(" ")}"
   end
 end
 
