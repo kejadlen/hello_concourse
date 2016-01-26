@@ -19,9 +19,6 @@ func HelloServer() *http.ServeMux {
 func main() {
   hello := HelloServer()
   port := os.Getenv("PORT")
-  if port == "" {
-    port = "9293"
-  }
   addr := fmt.Sprintf(":%s", port)
 	err := http.ListenAndServe(addr, hello)
 	if err != nil {
