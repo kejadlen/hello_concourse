@@ -1,20 +1,46 @@
 resources:
-- name: hw-source
+- name: hello_concourse
   type: git
   source:
     uri: https://github.com/kejadlen/hello_concourse
     branch: master
 jobs:
-- name: hello-world
+- name: app-test
   plan:
-  - get: hw-source
+  - get: hello_concourse
+    trigger: true
+  - task: app-test
+    config:
+      platform: linux
+      image: "docker:///ruby"
+      inputs:
+        - name: hello_concourse
+      run:
+        path: "ruby"
+        args: ["hello_concourse/services/app.rb"]
+- name: hello-test
+  plan:
+  - get: hello_concourse
     trigger: true
   - task: hello-test
     config:
       platform: linux
       image: "docker:///ruby"
       inputs:
-        - name: hw-source
+        - name: hello_concourse
       run:
         path: "ruby"
-        args: ["hw-source/services/hello.rb"]
+        args: ["hello_concourse/services/hello.rb"]
+- name: world-test
+  plan:
+  - get: hello_concourse
+    trigger: true
+  - task: world-test
+    config:
+      platform: linux
+      image: "docker:///ruby"
+      inputs:
+        - name: hello_concourse
+      run:
+        path: "ruby"
+        args: ["hello_concourse/services/world.rb"]
