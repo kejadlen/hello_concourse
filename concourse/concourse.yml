@@ -16,7 +16,7 @@ resources:
   type: s3
   source:
     bucket: hello-concourse
-    regexp: hello
+    regexp: hello.tar.gz
     access_key_id: {{s3-access-key-id}}
     secret_access_key: {{s3-secret-access-key}}
     region_name: us-west-2
@@ -29,12 +29,13 @@ jobs:
   - task: app-test
     config:
       platform: linux
-      image: "docker:///ruby"
+      image: docker:///ruby
       inputs:
         - name: hello_concourse
       run:
-        path: "ruby"
-        args: ["hello_concourse/services/app.rb"]
+        path: ruby
+        args:
+          - hello_concourse/services/app.rb
 - name: hello-build
   plan:
   - get: hello_concourse
@@ -42,22 +43,38 @@ jobs:
   - task: hello-build
     config:
       platform: linux
-      image: "docker:///golang"
+      image: docker:///golang
       inputs:
         - name: hello_concourse
       run:
-        path: "go"
+        path: go
         args:
           - build
           - -o
           - hello_concourse/services/hello/build/hello
           - hello_concourse/services/hello/hello.go
       outputs:
-        - name: hello-out
+        - name: hello-build
           path: hello_concourse/services/hello/build
+  - task: hello-tar
+    config:
+      platform: linux
+      image: docker:///golang
+      inputs:
+        - name: hello-build
+      run:
+        path: tar
+        args:
+          - czf
+          - hello-tar/hello.tar.gz
+          - -C
+          - hello-build
+          - hello
+      outputs:
+        - name: hello-tar
   - put: s3
     params:
-      file: hello-out/hello
+      file: hello-tar/hello.tar.gz
 - name: hello-test
   plan:
   - get: hello_concourse
@@ -67,11 +84,11 @@ jobs:
   - task: hello-test
     config:
       platform: linux
-      image: "docker:///golang"
+      image: docker:///golang
       inputs:
         - name: hello_concourse
       run:
-        path: "go"
+        path: go
         args:
           - test
           - -v
@@ -87,10 +104,25 @@ jobs:
     trigger: true
     passed:
       - hello-build
+  - task: hello-untar
+    config:
+      platform: linux
+      image: docker:///golang
+      inputs:
+        - name: s3
+      run:
+        path: tar
+        args:
+          - xzf
+          - s3/hello.tar.gz
+          - -C
+          - hello-untar
+      outputs:
+        - name: hello-untar
   - put: cf
     params:
       manifest: hello_concourse/services/hello/manifest.yml
-      path: s3/hello
+      path: hello-untar
 - name: world-test
   plan:
   - get: hello_concourse
@@ -98,9 +130,10 @@ jobs:
   - task: world-test
     config:
       platform: linux
-      image: "docker:///ruby"
+      image: docker:///ruby
       inputs:
         - name: hello_concourse
       run:
-        path: "ruby"
-        args: ["hello_concourse/services/world.rb"]
+        path: ruby
+        args:
+          - hello_concourse/services/world.rb
