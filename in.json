@@ -1,0 +1,18 @@
+{
+  "source": {
+	"access_key_id": "AKIAIBR6EYEZVQKM5CMQ",
+	"secret_access_key": "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",
+	"bucket": "hello-concourse",
+	"regexp": "hello",
+	"versioned_file": "",
+	"private": false,
+	"region_name": "us-west-2",
+	"cloudfront_url": "",
+	"endpoint": ""
+  },
+  "params": {
+    "from": "",
+    "file": "hello-out/hello",
+    "to": ""
+  }
+}
