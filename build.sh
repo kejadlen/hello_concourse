@@ -8,7 +8,7 @@ cd "$(dirname "$0")"
 case "$app" in
   hello)
     go build -o build/hello services/hello/hello.go
-    tar czf "build/hello-${version}.tar.gz" build/hello
+    tar czf "build/hello-${version}.tar.gz" -C build hello
     ;;
   *)
     echo "Unknown service \"$app\"!"
