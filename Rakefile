@@ -22,6 +22,14 @@ namespace :concourse do
 
     sh "./vagrant/fly set-pipeline #{args.map {|k,v| "--#{k}=#{v}" }.join(" ")}"
   end
+
+  task :init do
+    # sh "brew cask install vagrant"
+    # sh "brew cask install virtualbox"
+    sh "vagrant up"
+    sh "open http://192.168.100.4:8080"
+    # Update Concourse
+  end
 end
 
 namespace :cf do

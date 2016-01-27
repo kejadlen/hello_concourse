@@ -4,10 +4,23 @@ Sample project for experimenting with Concourse.
 
 # Requirements
 
+## Tools
+
 - cf (for deploying to Cloud Foundry)
 - go (for building hello)
 - ruby (for everything else)
 - vagrant (for Concourse)
+
+## Environment Variables
+
+```
+export HELLO_SERVICE=http://localhost:9293/hello
+export WORLD_SERVICE=http://localhost:9294
+export CF_USERNAME=
+export CF_PASSWORD=
+export S3_ACCESS_KEY_ID=
+export S3_SECRET_ACCESS_KEY=
+```
 
 # Running
 
