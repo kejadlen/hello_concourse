@@ -22,24 +22,6 @@ resources:
     secret_access_key: {{s3-secret-access-key}}
     region_name: us-west-2
     initial_version: 0.0.1
-- name: world-version
-  type: semver
-  source:
-    bucket: hello-concourse
-    key: world-version
-    access_key_id: {{s3-access-key-id}}
-    secret_access_key: {{s3-secret-access-key}}
-    region_name: us-west-2
-    initial_version: 0.0.1
-- name: app-version
-  type: semver
-  source:
-    bucket: hello-concourse
-    key: app-version
-    access_key_id: {{s3-access-key-id}}
-    secret_access_key: {{s3-secret-access-key}}
-    region_name: us-west-2
-    initial_version: 0.0.1
 - name: s3
   type: s3
   source:

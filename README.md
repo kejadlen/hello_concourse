@@ -34,8 +34,7 @@ rake concourse:update # Update Concourse
 
 # TODO
 
-- S3 example
-- Versioning
+- Versioning (for app and world; hello has a good example)
 - Additional tests
 - Multi-stage pipeline (integration?)
 - Use AWS + Bosh
