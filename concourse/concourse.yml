@@ -1,4 +1,5 @@
 resources:
+
 - name: hello_concourse
   type: git
   source:
@@ -21,6 +22,24 @@ resources:
     secret_access_key: {{s3-secret-access-key}}
     region_name: us-west-2
     initial_version: 0.0.1
+- name: world-version
+  type: semver
+  source:
+    bucket: hello-concourse
+    key: world-version
+    access_key_id: {{s3-access-key-id}}
+    secret_access_key: {{s3-secret-access-key}}
+    region_name: us-west-2
+    initial_version: 0.0.1
+- name: app-version
+  type: semver
+  source:
+    bucket: hello-concourse
+    key: app-version
+    access_key_id: {{s3-access-key-id}}
+    secret_access_key: {{s3-secret-access-key}}
+    region_name: us-west-2
+    initial_version: 0.0.1
 - name: s3
   type: s3
   source:
@@ -31,7 +50,8 @@ resources:
     region_name: us-west-2
 
 jobs:
-- name: app-test
+
+- name: app
   plan:
   - get: hello_concourse
     trigger: true
@@ -44,15 +64,21 @@ jobs:
       run:
         path: ruby
         args:
-          - hello_concourse/services/app.rb
+          - hello_concourse/services/app/app.rb
+  - put: cf
+    params:
+      manifest: hello_concourse/services/app/manifest.yml
+      path: hello_concourse/services/app
+
 - name: hello-build
   serial_groups: [build-version]
   plan:
-  - get: hello_concourse
-    trigger: true
-  - get: hello-version
-    params:
-      pre: rc
+  - aggregate:
+    - get: hello_concourse
+      trigger: true
+    - get: hello-version
+      params:
+        pre: rc
   - task: hello-build
     config:
       platform: linux
@@ -71,6 +97,7 @@ jobs:
   - put: hello-version
     params:
       file: hello-version/number
+
 - name: hello-test
   plan:
   - get: hello_concourse
@@ -90,20 +117,23 @@ jobs:
           - -v
           - hello_concourse/services/hello/hello_test.go
           - hello_concourse/services/hello/hello.go
+
 - name: hello-deploy
+  serial: true
   plan:
-  - get: hello_concourse
-    trigger: true
-    passed:
-      - hello-test
-  - get: s3
-    trigger: true
-    passed:
-      - hello-build
+  - aggregate:
+    - get: hello_concourse
+      trigger: true
+      passed:
+        - hello-test
+    - get: s3
+      trigger: true
+      passed:
+        - hello-build
   - task: hello-untar
     config:
       platform: linux
-      image: docker:///golang
+      image: docker:///ubuntu
       inputs:
         - name: s3
       run:
@@ -115,7 +145,8 @@ jobs:
     params:
       manifest: hello_concourse/services/hello/manifest.yml
       path: hello-untar
-- name: world-test
+
+- name: world
   plan:
   - get: hello_concourse
     trigger: true
@@ -128,4 +159,8 @@ jobs:
       run:
         path: ruby
         args:
-          - hello_concourse/services/world.rb
+          - hello_concourse/services/world/world.rb
+  - put: cf
+    params:
+      manifest: hello_concourse/services/world/manifest.yml
+      path: hello_concourse/services/world
