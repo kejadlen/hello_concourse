@@ -4,7 +4,7 @@ namespace :dev do
   desc "Run services locally"
   task :run do
     cd "services" do
-      sh "foreman start"
+      sh "foreman start --procfile=services/Procfile.dev"
     end
   end
 end
@@ -35,6 +35,8 @@ end
 namespace :cf do
   desc "Push everything to CF"
   task push: "services/hello/hello" do
+    sh "cf push -f services/app/manifest.yml -p services/app/"
+    sh "cf push -f services/world/manifest.yml -p services/world/"
     cd "services/hello" do
       sh "cf push"
       rm "hello"

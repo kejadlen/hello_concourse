@@ -1,0 +1,3 @@
+app: rackup --port 9292 app/app.ru
+hello: PORT=9293 go run hello/hello.go
+world: rackup --port 9294 world/world.ru

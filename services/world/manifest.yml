@@ -1,0 +1,4 @@
+applications:
+- name: world
+  host: hello_concourse-world
+  buildpack: ruby_buildpack

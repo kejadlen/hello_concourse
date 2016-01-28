@@ -1,0 +1,11 @@
+source "https://rubygems.org"
+
+ruby "2.2.3"
+
+gem "minitest"
+gem "rack"
+gem "json"
+
+group :development do
+  gem "foreman"
+end
