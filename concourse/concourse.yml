@@ -12,11 +12,20 @@ resources:
     password: {{cf-password}}
     organization: seattle-beach
     space: hello_concourse
+- name: hello-version
+  type: semver
+  source:
+    bucket: hello-concourse
+    key: hello-version
+    access_key_id: {{s3-access-key-id}}
+    secret_access_key: {{s3-secret-access-key}}
+    region_name: us-west-2
+    initial_version: 0.0.1
 - name: s3
   type: s3
   source:
     bucket: hello-concourse
-    regexp: hello.tar.gz
+    regexp: hello-.*\.tar\.gz
     access_key_id: {{s3-access-key-id}}
     secret_access_key: {{s3-secret-access-key}}
     region_name: us-west-2
@@ -37,44 +46,31 @@ jobs:
         args:
           - hello_concourse/services/app.rb
 - name: hello-build
+  serial_groups: [build-version]
   plan:
   - get: hello_concourse
     trigger: true
+  - get: hello-version
+    params:
+      pre: rc
   - task: hello-build
     config:
       platform: linux
       image: docker:///golang
       inputs:
         - name: hello_concourse
+        - name: hello-version
       run:
-        path: go
+        path: hello_concourse/build.sh
         args:
-          - build
-          - -o
-          - hello_concourse/services/hello/build/hello
-          - hello_concourse/services/hello/hello.go
-      outputs:
-        - name: hello-build
-          path: hello_concourse/services/hello/build
-  - task: hello-tar
-    config:
-      platform: linux
-      image: docker:///golang
-      inputs:
-        - name: hello-build
-      run:
-        path: tar
-        args:
-          - czf
-          - hello-tar/hello.tar.gz
-          - -C
-          - hello-build
           - hello
-      outputs:
-        - name: hello-tar
+          - hello-version/number
   - put: s3
     params:
-      file: hello-tar/hello.tar.gz
+      file: hello-build/hello_concourse/build/hello-*.tar.gz
+  - put: hello-version
+    params:
+      file: hello-version/number
 - name: hello-test
   plan:
   - get: hello_concourse
@@ -111,14 +107,10 @@ jobs:
       inputs:
         - name: s3
       run:
-        path: tar
+        path: sh
         args:
-          - xzf
-          - s3/hello.tar.gz
-          - -C
-          - hello-untar
-      outputs:
-        - name: hello-untar
+          - -c
+          - tar xzf s3/hello-*.tar.gz
   - put: cf
     params:
       manifest: hello_concourse/services/hello/manifest.yml
